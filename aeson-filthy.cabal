@@ -1,6 +1,7 @@
 name:                aeson-filthy
 version:             0.1
 homepage:            https://github.com/deviant-logic/aeson-filthy
+bug-reports:         https://github.com/deviant-logic/aeson-filthy/issues
 license:             BSD3
 author:              Alec Heller
 maintainer:          alec@deviant-logic.net
