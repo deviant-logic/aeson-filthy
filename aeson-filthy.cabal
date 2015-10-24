@@ -9,7 +9,7 @@ cabal-version:       >=1.10
 category:            Text, Web, JSON
 synopsis:            Several newtypes and combinators for dealing with less-than-cleanly JSON input.
 description:         A little library of newtypes to help with parsing indiscriminately encoded JSON.
-
+tested-with:         GHC >= 7.10
 
 library
   hs-source-dirs:      src
