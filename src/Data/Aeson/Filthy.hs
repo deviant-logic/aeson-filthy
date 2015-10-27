@@ -24,18 +24,24 @@ module Data.Aeson.Filthy
 
     , EmptyAsNothing(..)
 
+    -- * Case Insensitive Keys
+
+    , (.:~)
+
     ) where
 
-import           Control.Applicative  (Alternative)
+import           Control.Applicative  (Alternative (..))
 import           Control.Monad        (MonadPlus)
 import           Control.Monad.Fix    (MonadFix)
 import           Data.Aeson
 import           Data.Aeson.Types     (Pair, Parser)
 import           Data.Bits            (Bits, FiniteBits)
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.HashMap.Lazy    as HM
 import           Data.Ix              (Ix)
 import           Data.String          (IsString)
 import           Data.Text            (Text)
+import qualified Data.Text            as T
 import qualified Data.Text.Encoding   as T
 import           Foreign.Storable     (Storable)
 import           GHC.Generics         (Generic, Generic1)
@@ -58,11 +64,12 @@ instance FromJSON a => FromJSON (JSONString a) where
                          (maybe (error "couldn't decode string") return . evil)
         where evil = fmap JSONString . decodeStrict . T.encodeUtf8
 
--- | Works like aeson's '(.:)', but assumes the value being parsed is double-encoded.
+-- | Works like aeson's ('.:'), but assumes the value being parsed is double-encoded.  Mnemonic: @$@
+--   sorta looks like an "S" (for "String").
 (.:$) :: FromJSON a => Object -> Text -> Parser a
 o .:$ t = jsonString <$> o .: t
 
--- | Works like aeson's '(.=)', but double-encodes the value being serialized.
+-- | Works like aeson's ('.='), but double-encodes the value being serialized.
 (.=$) :: ToJSON a => Text -> a -> Pair
 n .=$ o = n .= JSONString o
 
@@ -150,8 +157,6 @@ instance FromJSON AnyBool where
     parseJSON (Bool b)        = pure $ AnyBool b
     parseJSON _               = pure $ AnyBool False
 
--- * Maybe
-
 -- | Sometimes an empty string in a JSON object actually means 'Nothing'
 --
 -- >>> emptyAsNothing <$> decode "\"\"" :: Maybe (Maybe Text)
@@ -171,3 +176,21 @@ instance ToJSON a => ToJSON (EmptyAsNothing a) where
 instance FromJSON a => FromJSON (EmptyAsNothing a) where
     parseJSON "" = pure $ EmptyAsNothing Nothing
     parseJSON x  = EmptyAsNothing <$> parseJSON x
+
+
+-- | Some systems attempt to treat keys in JSON objects case-insensitively(ish).  Golang's JSON
+--   marshalling is a prominent example: <https://golang.org/pkg/encoding/json/#Marshal>. The
+--   ('.:~') combinator works like ('.:'), but if it fails to match, attempts to find a
+--   case-insensitive variant of the key being sought.  If there is an exact match, ('.:~') will
+--   take that; if there are multiple non-exact matches, the choice of selected value is
+--   unspecified.  Mnemonic: @~@ swaps case in vi.
+--
+-- >>> data Foo = Foo Int deriving (Read, Show)
+-- >>> instance FromJSON Foo where parseJSON (Object o) = Foo <$> o .:~ "foo"
+-- >>> decode "{\"FOO\": 12}" :: Maybe Foo
+-- Just (Foo 12)
+-- >>> decode "{\"foo\": 17, \"FOO\": 12}" :: Maybe Foo
+-- Just (Foo 17)
+(.:~) :: FromJSON a => Object -> Text -> Parser a
+o .:~ key = o .: key <|> maybe empty parseJSON go
+    where go = lookup (T.toLower key) [(T.toLower k, v) | (k,v) <- HM.toList o]

@@ -20,6 +20,7 @@ library
                      , aeson
                      , bytestring
                      , text
+                     , unordered-containers
   exposed-modules:     Data.Aeson.Filthy
 
 test-suite doctests
