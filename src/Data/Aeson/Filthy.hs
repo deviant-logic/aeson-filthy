@@ -165,7 +165,7 @@ instance FromJSON AnyBool where
 -- >>> emptyAsNothing <$> decode "\"something\"" :: Maybe (Maybe Text)
 -- Just (Just "something")
 newtype EmptyAsNothing a = EmptyAsNothing { emptyAsNothing :: Maybe a}
-    deriving (Eq, Ord, Read, Show, Functor, Applicative, Alternative, Monad, MonadPlus, Foldable, Monoid, MonadFix, Generic, Generic1)
+    deriving (Eq, Ord, Read, Show, Functor, Applicative, Alternative, Monad, MonadPlus, Foldable, Semigroup, Monoid, MonadFix, Generic, Generic1)
 
 instance Traversable EmptyAsNothing where
     traverse f = fmap EmptyAsNothing . traverse f . emptyAsNothing
