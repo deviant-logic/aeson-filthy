@@ -39,6 +39,7 @@ import           Data.Bits            (Bits, FiniteBits)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashMap.Lazy    as HM
 import           Data.Ix              (Ix)
+import           Data.Semigroup       (Semigroup)
 import           Data.String          (IsString)
 import           Data.Text            (Text)
 import qualified Data.Text            as T
