@@ -1,5 +1,5 @@
 name:                aeson-filthy
-version:             0.1.1
+version:             0.1.2
 homepage:            https://github.com/deviant-logic/aeson-filthy
 bug-reports:         https://github.com/deviant-logic/aeson-filthy/issues
 license:             BSD3
@@ -21,6 +21,8 @@ library
                      , bytestring
                      , text
                      , unordered-containers
+  if impl(ghc < 8.0)
+    build-depends:     semigroups
   exposed-modules:     Data.Aeson.Filthy
 
 test-suite doctests
@@ -31,3 +33,9 @@ test-suite doctests
   main-is:             doctest.hs
   build-depends:       base
                      , doctest >= 0.8
+                     , aeson
+                     , bytestring
+                     , text
+                     , unordered-containers
+  if impl(ghc < 8.0)
+    build-depends:     semigroups
