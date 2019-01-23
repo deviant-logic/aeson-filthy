@@ -184,16 +184,18 @@ instance FromJSON a => FromJSON (EmptyAsNothing a) where
     parseJSON x  = EmptyAsNothing <$> parseJSON x
 
 -- | A RFC 2822 encoded time value, allowing the modern RFC 2822 format.
---   Because of the way the RFC 822 dates are allowed in RFC 2822, it allows a combinatorial
---   number of encodings, which we do not attempt to cover yet.
+-- These parsers do not currently handle the more messy whitespace and comments
+-- allowed by the RFC.
 --
---   The primary use for this if JSON APIs that dump JS datetimes as strings into the JSON.
+-- The primary use for this if JSON APIs that dump JS datetimes as strings into the JSON.
 --
 -- Encoding follows the modern RFC 2822 recomended format:
+--
 -- >>> encode (RFC2822Time (read "2011-10-13 18:02:00 UTC"))
 -- "\"Thu, 13 Oct 2011 18:02:00 +0000\""
 --
 -- Decoding though must be far more liberal:
+--
 -- >>> decode "\"Thu, 13 Oct 2011 18:02:00 GMT\"" :: Maybe RFC2822Time
 -- Just (RFC2822Time {fromRFC2822Time = 2011-10-13 18:02:00 UTC})
 -- >>> decode "\"Fri, 21 Nov 1997 09:55:06 -0600\"" :: Maybe RFC2822Time
@@ -209,9 +211,13 @@ instance FromJSON a => FromJSON (EmptyAsNothing a) where
 -- Just (RFC2822Time {fromRFC2822Time = 0097-11-21 09:55:06 UTC})
 --
 -- Things that should parse but don't:
+--
 -- decode "\"Thu,\n      13\n        Feb\n          1969\n      23:32\n               -0330 (Newfoundland Time)\"" :: Maybe RFC2822Time
+--
 -- Just (RFC2822Time {fromRFC2822Time = 1969-02-14 03:02:00 UTC})
+--
 -- decode "\"Fri, 21 Nov 1997 09(comment):   55  :  06 -0600\"" :: Maybe RFC2822Time
+--
 -- Just (RFC2822Time {fromRFC2822Time = 1997-11-21 15:55:06 UTC})
 newtype RFC2822Time
  = RFC2822Time { fromRFC2822Time :: UTCTime }
