@@ -24,6 +24,10 @@ module Data.Aeson.Filthy
 
     , EmptyAsNothing(..)
 
+    -- * EmptyObject
+
+    , EmptyObject(..)
+
     -- * Time
     , RFC2822Time(..)
 
@@ -182,6 +186,28 @@ instance ToJSON a => ToJSON (EmptyAsNothing a) where
 instance FromJSON a => FromJSON (EmptyAsNothing a) where
     parseJSON "" = pure $ EmptyAsNothing Nothing
     parseJSON x  = EmptyAsNothing <$> parseJSON x
+
+-- | Sometimes an empty object is all there is (/e.g./ returned instead of HTTP 204).
+--
+-- >>> decode "{}" :: Maybe EmptyObject
+-- Just EmptyObject
+--
+-- >> eitherDecode "{\"\":\"\"}" :: Either String EmptyObject
+-- Left "Error in $: parsing EmptyObject failed, encountered non-empty Object"
+--
+-- >>> encode EmptyObject
+-- "{}"
+data EmptyObject = EmptyObject
+    deriving (Eq, Ord, Enum, Bounded, Read, Show, Generic)
+
+instance FromJSON EmptyObject where
+  parseJSON = withObject "EmptyObject" $ \o ->
+    if HM.null o
+       then return EmptyObject
+       else fail "parsing EmptyObject failed, encountered non-empty Object"
+
+instance ToJSON EmptyObject where
+  toJSON EmptyObject = object []
 
 -- | A RFC 2822 encoded time value, allowing the modern RFC 2822 format.
 -- These parsers do not currently handle the more messy whitespace and comments
