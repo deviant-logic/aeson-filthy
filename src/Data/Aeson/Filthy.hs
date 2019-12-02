@@ -190,24 +190,24 @@ instance FromJSON a => FromJSON (EmptyAsNothing a) where
 -- | Sometimes an empty object is all there is (/e.g./ returned instead of HTTP 204).
 --
 -- >>> decode "{}" :: Maybe EmptyObject
--- Just EmptyObject
+-- Just (EmptyObject {emptyObject = ()})
 --
 -- >> eitherDecode "{\"\":\"\"}" :: Either String EmptyObject
 -- Left "Error in $: parsing EmptyObject failed, encountered non-empty Object"
 --
--- >>> encode EmptyObject
+-- >>> encode (EmptyObject ())
 -- "{}"
-data EmptyObject = EmptyObject
+newtype EmptyObject = EmptyObject { emptyObject :: () }
     deriving (Eq, Ord, Enum, Bounded, Read, Show, Generic)
 
 instance FromJSON EmptyObject where
   parseJSON = withObject "EmptyObject" $ \o ->
     if HM.null o
-       then return EmptyObject
+       then return $ EmptyObject ()
        else fail "parsing EmptyObject failed, encountered non-empty Object"
 
 instance ToJSON EmptyObject where
-  toJSON EmptyObject = object []
+  toJSON (EmptyObject ()) = object []
 
 -- | A RFC 2822 encoded time value, allowing the modern RFC 2822 format.
 -- These parsers do not currently handle the more messy whitespace and comments
