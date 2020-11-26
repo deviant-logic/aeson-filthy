@@ -256,7 +256,7 @@ instance FromJSON RFC2822Time where
               -- This allows some whitespace in places it isn't allowed. Also the RFC definition of
               -- whitespace is more permissive then spaces and newlines.
               let ts = T.unpack . T.replace " " "" . T.replace "\n" "" $ t
-              in case getFirst . foldMap (\f -> parseTimeM True defaultTimeLocale f ts) $ (
+              in case getFirst . foldMap (\f -> First $ parseTimeM True defaultTimeLocale f ts) $ (
                  do -- Generate the allows RFC2822 time format following its ABNF.
                    -- The day of week is optional
                    dow  <- ["", "%a,"]
